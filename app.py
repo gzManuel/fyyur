@@ -137,30 +137,55 @@ def index():
 
 @app.route('/venues')
 def venues():
-  # TODO: replace with real venues data.
-  #       num_shows should be aggregated based on number of upcoming shows per venue.
-  data=[{
-    "city": "San Francisco",
-    "state": "CA",
-    "venues": [{
-      "id": 1,
-      "name": "The Musical Hop",
-      "num_upcoming_shows": 0,
-    }, {
-      "id": 3,
-      "name": "Park Square Live Music & Coffee",
-      "num_upcoming_shows": 1,
-    }]
-  }, {
-    "city": "New York",
-    "state": "NY",
-    "venues": [{
-      "id": 2,
-      "name": "The Dueling Pianos Bar",
-      "num_upcoming_shows": 0,
-    }]
-  }]
-  return render_template('pages/venues.html', areas=data);
+  venues_city = Venue.query.all()
+  data=[]
+  # Filling data[] with cities and states, venues is set as an empty array
+  # to fill later
+  for venue in venues_city:
+    d = {
+      'city': venue.city,
+      'state': venue.state,
+      'venues':[]
+    }
+    # If d isn't in data, add d to data
+    if d not in data:
+      data.append(d)
+  
+  # Go through all the cities of data[] and add the venues
+  for d in data:
+    # Getting all venues of a d.city
+    venues_add = Venue.query.filter_by(city=d.get('city')).all()
+    # Adding the venues_add to d['venues].
+    for v in venues_add:
+      d['venues'].append({
+        "id":v.id,
+        "name":v.name,
+        "num_upcoming_shows":count_upcoming_shows_venue(v.id)
+      })
+  return render_template('pages/venues.html', areas=data)
+
+  # data=[{
+  #   "city": "San Francisco",
+  #   "state": "CA",
+  #   "venues": [{
+  #     "id": 1,
+  #     "name": "The Musical Hop",
+  #     "num_upcoming_shows": 0,
+  #   }, {
+  #     "id": 3,
+  #     "name": "Park Square Live Music & Coffee",
+  #     "num_upcoming_shows": 1,
+  #   }]
+  # }, {
+  #   "city": "New York",
+  #   "state": "NY",
+  #   "venues": [{
+  #     "id": 2,
+  #     "name": "The Dueling Pianos Bar",
+  #     "num_upcoming_shows": 0,
+  #   }]
+  # }]
+  # return render_template('pages/venues.html', areas=data);
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
@@ -572,3 +597,9 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
 '''
+
+# Count all the upcoming shows of a venue
+def count_upcoming_shows_venue(id):
+  todays_datetime = datetime(datetime.today().year, datetime.today().month, datetime.today().day)
+  shows = Show.query.filter_by(venue_id=id).filter(Show.start_time>=todays_datetime).count()
+  return shows
