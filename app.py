@@ -5,6 +5,7 @@
 import json
 import dateutil.parser
 import babel
+import sys
 from flask import Flask, render_template, request, Response, flash, redirect, url_for
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
@@ -219,23 +220,42 @@ def create_venue_form():
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-  # TODO: insert form data as a new Venue record in the db, instead
-  # TODO: modify data to be the data object returned from db insertion
+  name = request.form['name']
+  city = request.form['city']
+  state = request.form['state'] 
+  address = request.form['address']
+  phone = request.form['phone']
+  genres = request.form.getlist('genres')
+  facebook_link = request.form['facebook_link']
+  # Getting the max_id of the venue to avoid IntegrityError duplicate key value violates unique constraint
+  max_id = Venue.query.order_by(Venue.id.desc()).first().id
+  max_id = max_id+1
+  venue = Venue(id=max_id, name=name, city=city, state=state, address=address, phone=phone, genres=genres, facebook_link=facebook_link)
 
-  # on successful db insert, flash success
-  flash('Venue ' + request.form['name'] + ' was successfully listed!')
-  # TODO: on unsuccessful db insert, flash an error instead.
-  # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
-  # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
+  # Adding a new row to table "Venue" with postgresql
+  try:
+    db.session.add(venue)
+    db.session.commit()
+    flash('Venue ' + name + ' was successfully listed!')
+  except:
+    db.session.rollback()
+    flash('An error occurred. Venue ' + name+ ' could not be listed.')
+    print(sys.exc_info())
+  finally:
+    db.session.close()
+
   return render_template('pages/home.html')
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
-  # TODO: Complete this endpoint for taking a venue_id, and using
-  # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
-
-  # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
-  # clicking that button delete it from the db then redirect the user to the homepage
+  try:
+    Venue.query.filter_by(id=venue_id).delete()
+    db.session.commit()
+  except:
+    db.session.rollback()
+  finally:
+    db.session.close()
+  
   return None
 
 #  Artists
@@ -520,6 +540,40 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
 '''
+# Get all the upcoming shows of a venue, and return data[] with dictionaries, with all the information needed it
+def get_upcoming_shows_venue(id):
+  todays_datetime = datetime(datetime.today().year, datetime.today().month, datetime.today().day)
+  shows = Show.query.filter_by(venue_id=id).filter(Show.start_time>=todays_datetime).all()
+  data = []
+  for show in shows:
+    artist = Artist.query.get(show.artist_id)
+    data.append({
+      "artist_id":artist.id,
+      "artist_name":artist.name,
+      "artist_image_link":artist.image_link,
+      "start_time": show.start_time.isoformat()
+    })
+  return data
+
+# Get all the past shows of a venue, and return data[] with dictionaries with all the information needed it. 
+def get_past_shows_venue(id):
+  todays_datetime = datetime(datetime.today().year, datetime.today().month, datetime.today().day)
+  shows = Show.query.filter_by(venue_id=id).filter(Show.start_time<=todays_datetime).all()
+  data = []
+  for show in shows:
+    artist = Artist.query.get(show.artist_id)
+    data.append({
+      "artist_id":artist.id,
+      "artist_name":artist.name,
+      "artist_image_link":artist.image_link,
+      "start_time": show.start_time.isoformat()
+    })
+  return data
+# Count all the past shows of a venue
+def count_past_shows_venue(id):
+  todays_datetime = datetime(datetime.today().year, datetime.today().month, datetime.today().day)
+  shows = Show.query.filter_by(venue_id=id).filter(Show.start_time<=todays_datetime).count()
+  return shows
 
 # Count all the upcoming shows of a venue
 def count_upcoming_shows_venue(id):
