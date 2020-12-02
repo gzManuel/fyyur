@@ -227,7 +227,7 @@ def create_venue_submission():
   phone = request.form['phone']
   genres = request.form.getlist('genres')
   facebook_link = request.form['facebook_link']
-  # Getting the max_id of the venue to avoid IntegrityError duplicate key value violates unique constraint
+  # Getting the max_id of the venue to avoid IntegrityError duplicate key id value violates unique constraint
   max_id = Venue.query.order_by(Venue.id.desc()).first().id
   max_id = max_id+1
   venue = Venue(id=max_id, name=name, city=city, state=state, address=address, phone=phone, genres=genres, facebook_link=facebook_link)
@@ -425,15 +425,30 @@ def create_artist_form():
 
 @app.route('/artists/create', methods=['POST'])
 def create_artist_submission():
-  # called upon submitting the new artist listing form
-  # TODO: insert form data as a new Venue record in the db, instead
-  # TODO: modify data to be the data object returned from db insertion
+  try:
+    name = request.form['name']
+    city = request.form['city']
+    state = request.form['state'] 
+    phone = request.form['phone']
+    genres = request.form.getlist('genres')
+    facebook_link = request.form['facebook_link']
+    # Getting the max_id of the Artist to avoid IntegrityError duplicate key id value violates unique constraint
+    max_id = Artist.query.order_by(Artist.id.desc()).first().id
+    max_id = max_id+1
+    artist = Artist(id=max_id,name=name, city=city, state=state, phone=phone, genres=genres, facebook_link=facebook_link)
 
-  # on successful db insert, flash success
-  flash('Artist ' + request.form['name'] + ' was successfully listed!')
-  # TODO: on unsuccessful db insert, flash an error instead.
-  # e.g., flash('An error occurred. Artist ' + data.name + ' could not be listed.')
+    db.session.add(artist)
+    db.session.commit()
+    flash('Artist ' + name + ' was successfully listed!')
+  except:
+    db.session.rollback()
+    flash('An error occurred. Artist ' + name + ' could not be listed.')
+    
+    print(sys.exc_info())
+  finally:
+    db.session.close()
   return render_template('pages/home.html')
+
 
 
 #  Shows
@@ -442,44 +457,19 @@ def create_artist_submission():
 @app.route('/shows')
 def shows():
   # displays list of shows at /shows
-  # TODO: replace with real venues data.
-  #       num_shows should be aggregated based on number of upcoming shows per venue.
-  data=[{
-    "venue_id": 1,
-    "venue_name": "The Musical Hop",
-    "artist_id": 4,
-    "artist_name": "Guns N Petals",
-    "artist_image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80",
-    "start_time": "2019-05-21T21:30:00.000Z"
-  }, {
-    "venue_id": 3,
-    "venue_name": "Park Square Live Music & Coffee",
-    "artist_id": 5,
-    "artist_name": "Matt Quevedo",
-    "artist_image_link": "https://images.unsplash.com/photo-1495223153807-b916f75de8c5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=334&q=80",
-    "start_time": "2019-06-15T23:00:00.000Z"
-  }, {
-    "venue_id": 3,
-    "venue_name": "Park Square Live Music & Coffee",
-    "artist_id": 6,
-    "artist_name": "The Wild Sax Band",
-    "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
-    "start_time": "2035-04-01T20:00:00.000Z"
-  }, {
-    "venue_id": 3,
-    "venue_name": "Park Square Live Music & Coffee",
-    "artist_id": 6,
-    "artist_name": "The Wild Sax Band",
-    "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
-    "start_time": "2035-04-08T20:00:00.000Z"
-  }, {
-    "venue_id": 3,
-    "venue_name": "Park Square Live Music & Coffee",
-    "artist_id": 6,
-    "artist_name": "The Wild Sax Band",
-    "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
-    "start_time": "2035-04-15T20:00:00.000Z"
-  }]
+  shows = getall_upcoming_shows()
+  data=[]
+  for show in shows:
+    artist = show.artist
+    venue = show.venue
+    data.append({
+      'venue_id':venue.id,
+      'venue_name':venue.name,
+      'artist_id':artist.id,
+      'artist_name':artist.name,
+      'artist_image_link':artist.image_link,
+      'start_time':show.start_time.isoformat()
+    })
   return render_template('pages/shows.html', shows=data)
 
 @app.route('/shows/create')
@@ -491,13 +481,24 @@ def create_shows():
 @app.route('/shows/create', methods=['POST'])
 def create_show_submission():
   # called to create new shows in the db, upon submitting new show listing form
-  # TODO: insert form data as a new Show record in the db, instead
-
-  # on successful db insert, flash success
-  flash('Show was successfully listed!')
-  # TODO: on unsuccessful db insert, flash an error instead.
-  # e.g., flash('An error occurred. Show could not be listed.')
-  # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
+  try:
+    artist_id=request.form['artist_id']
+    venue_id=request.form['venue_id']
+    start_time =request.form['start_time']
+    # Getting the max_id of the Show to avoid IntegrityError duplicate key id value violates unique constraint
+    max_id = Show.query.order_by(Show.id.desc()).first().id
+    max_id = max_id+1
+    show = Show(id=max_id,artist_id=artist_id,venue_id=venue_id,start_time=start_time)
+    print(show)
+    db.session.add(show)
+    db.session.commit()
+    flash('Show was successfully listed!')
+  except:
+    db.session.rollback()
+    flash('An error occurred. Show could not be listed.') 
+    print(sys.exc_info())
+  finally:
+    db.session.close()
   return render_template('pages/home.html')
 
 @app.errorhandler(404)
@@ -576,6 +577,11 @@ def get_past_shows_artist(id):
       "start_time": show.start_time.isoformat()
     })
   return data
+# Get all the upcoming shows of the database
+def getall_upcoming_shows():
+  todays_datetime = datetime(datetime.today().year, datetime.today().month, datetime.today().day)
+  shows = Show.query.filter(Show.start_time>=todays_datetime).all()
+  return shows
 # Get all the upcoming shows of an artist, and return data[] with dictionaries, with all the information needed it
 def get_upcoming_shows_artist(id):
   todays_datetime = datetime(datetime.today().year, datetime.today().month, datetime.today().day)
