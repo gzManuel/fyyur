@@ -227,9 +227,15 @@ def create_venue_submission():
   phone = request.form['phone']
   genres = request.form.getlist('genres')
   facebook_link = request.form['facebook_link']
+
   # Getting the max_id of the venue to avoid IntegrityError duplicate key id value violates unique constraint
-  max_id = Venue.query.order_by(Venue.id.desc()).first().id
-  max_id = max_id+1
+  # Verifying if there aren't venues, set max_id = 1, to avoid send None type to Venue(id=None).
+  if len(Venue.query.all()) == 0 :
+    max_id=1
+  else:
+    max_id = Venue.query.order_by(Venue.id.desc()).first().id
+    max_id = max_id+1
+
   venue = Venue(id=max_id, name=name, city=city, state=state, address=address, phone=phone, genres=genres, facebook_link=facebook_link)
 
   # Adding a new row to table "Venue" with postgresql
@@ -331,6 +337,7 @@ def edit_artist(artist_id):
   form.image_link.data = artist.image_link
   form.genres.data = artist.genres
   form.facebook_link.data = artist.facebook_link
+  print(artist.genres)
   artist={
     "id": artist.id,
     "name": artist.name,
@@ -379,6 +386,7 @@ def edit_venue(venue_id):
   form.image_link.data = venue.image_link
   form.genres.data = venue.genres
   form.facebook_link.data = venue.facebook_link
+  print(venue.genres)
   venue={
     "id": venue.id,
     "name": venue.name,
@@ -433,10 +441,13 @@ def create_artist_submission():
     genres = request.form.getlist('genres')
     facebook_link = request.form['facebook_link']
     # Getting the max_id of the Artist to avoid IntegrityError duplicate key id value violates unique constraint
-    max_id = Artist.query.order_by(Artist.id.desc()).first().id
-    max_id = max_id+1
+    # Verifying if there aren't Artist, set max_id = 1, to avoid send None type to Artist(id=None)
+    if len(Artist.query.all()) == 0:
+      max_id=1
+    else:
+      max_id = Artist.query.order_by(Artist.id.desc()).first().id
+      max_id = max_id+1
     artist = Artist(id=max_id,name=name, city=city, state=state, phone=phone, genres=genres, facebook_link=facebook_link)
-
     db.session.add(artist)
     db.session.commit()
     flash('Artist ' + name + ' was successfully listed!')
@@ -486,8 +497,12 @@ def create_show_submission():
     venue_id=request.form['venue_id']
     start_time =request.form['start_time']
     # Getting the max_id of the Show to avoid IntegrityError duplicate key id value violates unique constraint
-    max_id = Show.query.order_by(Show.id.desc()).first().id
-    max_id = max_id+1
+    # Verifying if there aren't Shows, set max_id = 1 to avoid send None type to Show(id=None) 
+    if len(Show.query.all())==0:
+      max_id=1
+    else:
+      max_id = Show.query.order_by(Show.id.desc()).first().id
+      max_id = max_id+1
     show = Show(id=max_id,artist_id=artist_id,venue_id=venue_id,start_time=start_time)
     print(show)
     db.session.add(show)
