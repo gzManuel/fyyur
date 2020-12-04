@@ -163,6 +163,7 @@ def venues():
         "name":v.name,
         "num_upcoming_shows":count_upcoming_shows_venue(v.id)
       })
+      
   return render_template('pages/venues.html', areas=data)
 
 @app.route('/venues/search', methods=['POST'])
@@ -524,7 +525,6 @@ def not_found_error(error):
 def server_error(error):
     return render_template('errors/500.html'), 500
 
-
 if not app.debug:
     file_handler = FileHandler('error.log')
     file_handler.setFormatter(
@@ -535,20 +535,6 @@ if not app.debug:
     app.logger.addHandler(file_handler)
     app.logger.info('errors')
 
-#----------------------------------------------------------------------------#
-# Launch.
-#----------------------------------------------------------------------------#
-
-# Default port:
-if __name__ == '__main__':
-    app.run()
-
-# Or specify port manually:
-'''
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
-'''
 # Get all the upcoming shows of a venue, and return data[] with dictionaries, with all the information needed it
 def get_upcoming_shows_venue(id):
   todays_datetime = datetime(datetime.today().year, datetime.today().month, datetime.today().day)
@@ -611,26 +597,45 @@ def get_upcoming_shows_artist(id):
       "start_time": show.start_time.isoformat()
     })
   return data
+
 # Count all the past shows of a venue
 def count_past_shows_venue(id):
   todays_datetime = datetime(datetime.today().year, datetime.today().month, datetime.today().day)
   shows = Show.query.filter_by(venue_id=id).filter(Show.start_time<=todays_datetime).count()
   return shows
+
 # Count all the past shows of an artist
+
 def count_past_shows_artist(id):
   todays_datetime = datetime(datetime.today().year, datetime.today().month, datetime.today().day)
   shows = Show.query.filter_by(artist_id=id).filter(Show.start_time<=todays_datetime).count()
   return shows
 
-# Count all the upcoming shows of a venue
-def count_upcoming_shows_venue(id):
-  todays_datetime = datetime(datetime.today().year, datetime.today().month, datetime.today().day)
-  shows = Show.query.filter_by(venue_id=id).filter(Show.start_time>=todays_datetime).count()
-  return shows
 # Count all the upcoming shows of a artist
 def count_upcoming_shows_artist(id):
   todays_datetime = datetime(datetime.today().year, datetime.today().month, datetime.today().day)
   shows = Show.query.filter_by(artist_id=id).filter(Show.start_time>=todays_datetime).count()
   return shows
+# Count all the upcoming shows of a venue
+def count_upcoming_shows_venue(id):
+  todays_datetime = datetime(datetime.today().year, datetime.today().month, datetime.today().day)
+  shows = Show.query.filter_by(venue_id=id).filter(Show.start_time>=todays_datetime).count()
+  return shows
+
+#----------------------------------------------------------------------------#
+# Launch.
+#----------------------------------------------------------------------------#
+
+# Default port:
+if __name__ == '__main__':
+    app.run()
+
+# Or specify port manually:
+'''
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
+'''
+
 
 
