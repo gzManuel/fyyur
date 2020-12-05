@@ -123,7 +123,7 @@ class VenueForm(Form):
         'website',validators=[URL()]
     )
     seeking_talent = BooleanField(
-        'seeking_talent',validators=[DataRequired()]
+        'seeking_talent'
     )
     seeking_description = TextAreaField(
         'seeking_description'
@@ -148,13 +148,13 @@ class ArtistForm(Form):
         choices=genres_choices
     )
     image_link = StringField(
-        'image_link'
+        'image_link',validators=[URL()]
     )
     facebook_link = StringField(
         'facebook_link', validators=[URL()]
     )
     seeking_venue = BooleanField(
-        'seeking_venue', validators=[DataRequired()]
+        'seeking_venue'
     )
     seeking_description = TextAreaField(
         'seeking_description'

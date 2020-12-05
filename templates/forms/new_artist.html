@@ -4,6 +4,7 @@
 <div class="form-wrapper">
   <form method="post" class="form">
     <h3 class="form-heading">List a new artist</h3>
+
     <div class="form-group">
       <label for="name">Name</label>
       {{ form.name(class_ = 'form-control', autofocus = true) }}
@@ -49,6 +50,7 @@
       {{ form.website(class_ = 'form-control', placeholder='http://', id=website, autofocus=true)}}
     </div>
     <input type="submit" value="Create Venue" class="btn btn-primary btn-lg btn-block">
+    
   </form>
 </div>
 {% endblock %}
