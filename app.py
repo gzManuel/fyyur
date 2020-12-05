@@ -227,7 +227,14 @@ def create_venue_submission():
   address = request.form['address']
   phone = request.form['phone']
   genres = request.form.getlist('genres')
+  if 'seeking_talent' in request.form:
+    seeking_talent = True
+  else:
+    seeking_talent = False
+  seeking_description = request.form['seeking_description']
+  image_link = request.form['image_link']
   facebook_link = request.form['facebook_link']
+  website = request.form['website']
 
   # Getting the max_id of the venue to avoid IntegrityError duplicate key id value violates unique constraint
   # Verifying if there aren't venues, set max_id = 1, to avoid send None type to Venue(id=None).
@@ -237,7 +244,8 @@ def create_venue_submission():
     max_id = Venue.query.order_by(Venue.id.desc()).first().id
     max_id = max_id+1
 
-  venue = Venue(id=max_id, name=name, city=city, state=state, address=address, phone=phone, genres=genres, facebook_link=facebook_link)
+  venue = Venue(id=max_id, name=name, city=city, state=state, address=address, phone=phone, genres=genres,seeking_talent=seeking_talent, 
+  seeking_description=seeking_description, image_link=image_link, facebook_link=facebook_link, website=website)
 
   # Adding a new row to table "Venue" with postgresql
   try:
@@ -464,7 +472,14 @@ def create_artist_submission():
     state = request.form['state'] 
     phone = request.form['phone']
     genres = request.form.getlist('genres')
+    if 'seeking_venue' in request.form:
+      seeking_venue = True
+    else:
+      seeking_venue = False
+    seeking_description = request.form['seeking_description']
+    image_link=request.form['image_link']
     facebook_link = request.form['facebook_link']
+    website = request.form['website']
     # Getting the max_id of the Artist to avoid IntegrityError duplicate key id value violates unique constraint
     # Verifying if there aren't Artist, set max_id = 1, to avoid send None type to Artist(id=None)
     if len(Artist.query.all()) == 0:
@@ -472,7 +487,8 @@ def create_artist_submission():
     else:
       max_id = Artist.query.order_by(Artist.id.desc()).first().id
       max_id = max_id+1
-    artist = Artist(id=max_id,name=name, city=city, state=state, phone=phone, genres=genres, facebook_link=facebook_link)
+    artist = Artist(id=max_id,name=name, city=city, state=state, phone=phone, genres=genres, seeking_venue=seeking_venue, 
+    seeking_description=seeking_description, image_link=image_link, facebook_link=facebook_link,website=website)
     db.session.add(artist)
     db.session.commit()
     flash('Artist ' + name + ' was successfully listed!')
