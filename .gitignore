@@ -1,5 +1,4 @@
 /myenv
 /node_modules
-/__pycache__
 **/__pycache__
 data.backup
