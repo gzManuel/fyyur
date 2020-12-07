@@ -72,7 +72,7 @@ def venues():
   # Go through all the cities of data[] and add the venues
   for d in data:
     # Getting all venues of a d.city
-    venues_add = Venue.query.filter_by(city=d.get('city')).all()
+    venues_add = Venue.query.filter(Venue.city==d.get('city')).all()
     # Adding the venues_add to d['venues].
     for v in venues_add:
       d['venues'].append({
@@ -181,7 +181,7 @@ def create_venue_submission():
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
   try:
-    Venue.query.filter_by(id=venue_id).delete()
+    Venue.query.filter(Venue.id==venue_id).delete()
     db.session.commit()
   except:
     db.session.rollback()
@@ -495,7 +495,7 @@ if not app.debug:
 # Get all the upcoming shows of a venue, and return data[] with dictionaries, with all the information needed it
 def get_upcoming_shows_venue(id):
   todays_datetime = datetime(datetime.today().year, datetime.today().month, datetime.today().day)
-  shows = Show.query.filter_by(venue_id=id).filter(Show.start_time>=todays_datetime).all()
+  shows = db.session.query(Show).join(Venue).filter(Show.venue_id==id).filter(Show.start_time>=todays_datetime).all()
   data = []
   for show in shows:
     artist = Artist.query.get(show.artist_id)
@@ -510,7 +510,7 @@ def get_upcoming_shows_venue(id):
 # Get all the past shows of a venue, and return data[] with dictionaries with all the information needed it. 
 def get_past_shows_venue(id):
   todays_datetime = datetime(datetime.today().year, datetime.today().month, datetime.today().day)
-  shows = Show.query.filter_by(venue_id=id).filter(Show.start_time<=todays_datetime).all()
+  shows = db.session.query(Show).join(Venue).filter(Show.venue_id==id).filter(Show.start_time<=todays_datetime).all()
   data = []
   for show in shows:
     artist = Artist.query.get(show.artist_id)
@@ -524,7 +524,7 @@ def get_past_shows_venue(id):
 # Get all the past shows of an artist, and return data[] with dictionaries, with all the information needed it. 
 def get_past_shows_artist(id):
   todays_datetime = datetime(datetime.today().year, datetime.today().month, datetime.today().day)
-  shows = Show.query.filter_by(artist_id=id).filter(Show.start_time<=todays_datetime).all()
+  shows = db.session.query(Show).join(Artist).filter(Show.artist_id == id).filter(Show.start_time<=todays_datetime).all()
   data = []
   for show in shows:
     venue = Venue.query.get(show.venue_id)
@@ -543,7 +543,7 @@ def getall_upcoming_shows():
 # Get all the upcoming shows of an artist, and return data[] with dictionaries, with all the information needed it
 def get_upcoming_shows_artist(id):
   todays_datetime = datetime(datetime.today().year, datetime.today().month, datetime.today().day)
-  shows = Show.query.filter_by(artist_id=id).filter(Show.start_time>=todays_datetime).all()
+  shows = db.session.query(Show).join(Artist).filter(Show.artist_id==id).filter(Show.start_time>=todays_datetime).all()
   data = []
   for show in shows:
     venue = Venue.query.get(show.venue_id)
@@ -558,25 +558,25 @@ def get_upcoming_shows_artist(id):
 # Count all the past shows of a venue
 def count_past_shows_venue(id):
   todays_datetime = datetime(datetime.today().year, datetime.today().month, datetime.today().day)
-  shows = Show.query.filter_by(venue_id=id).filter(Show.start_time<=todays_datetime).count()
+  shows = db.session.query(Show).join(Venue).filter(Show.venue_id==id).filter(Show.start_time<=todays_datetime).count()
   return shows
 
 # Count all the past shows of an artist
 
 def count_past_shows_artist(id):
   todays_datetime = datetime(datetime.today().year, datetime.today().month, datetime.today().day)
-  shows = Show.query.filter_by(artist_id=id).filter(Show.start_time<=todays_datetime).count()
+  shows = db.session.query(Show).join(Artist).filter(Show.artist_id==id).filter(Show.start_time<=todays_datetime).count()
   return shows
 
 # Count all the upcoming shows of a artist
 def count_upcoming_shows_artist(id):
   todays_datetime = datetime(datetime.today().year, datetime.today().month, datetime.today().day)
-  shows = Show.query.filter_by(artist_id=id).filter(Show.start_time>=todays_datetime).count()
+  shows = db.session.query(Show).join(Artist).filter(Show.artist_id==id).filter(Show.start_time>=todays_datetime).count()
   return shows
 # Count all the upcoming shows of a venue
 def count_upcoming_shows_venue(id):
   todays_datetime = datetime(datetime.today().year, datetime.today().month, datetime.today().day)
-  shows = Show.query.filter_by(venue_id=id).filter(Show.start_time>=todays_datetime).count()
+  shows = db.session.query(Show).join(Venue).filter(Show.venue_id==id).filter(Show.start_time>=todays_datetime).count()
   return shows
 
 #----------------------------------------------------------------------------#
